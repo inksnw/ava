@@ -18,6 +18,12 @@ func fixed(p core.TaskMsg) (rv *result) {
 	host := workerAvailable(p.Route, p.Worker)
 	if host != "" {
 		code, msg := send(p.Route, p)
+
+		if code == 400 {
+			log.Debug().Msgf("节点%s状态更新可能延迟,再次重试投送", host)
+			fixed(p)
+		}
+
 		return &result{code, msg, p.Route}
 	}
 	msg := fmt.Sprintf("未在主机: %s上找到业务%s,请检查参数", p.Route, p.Worker)
@@ -41,8 +47,13 @@ func balance(p core.TaskMsg) (rv *result) {
 		msg := fmt.Sprintf("任务: %s在节点 %s都有部署,全节点不可达", p.Route, hosts)
 		return &result{400, msg, ""}
 	}
-
 	code, msg := send(host, p)
+
+	if host != "" && code == 400 {
+		log.Debug().Msgf("节点%s状态更新可能延迟,再次重试投送", host)
+		balance(p)
+	}
+
 	msg = fmt.Sprintf("任务%s在%s都有部署, %s", p.Worker, hosts, msg)
 	return &result{code, msg, host}
 
@@ -57,7 +68,7 @@ func balanceOne(hosts []string, p core.TaskMsg) (host string) {
 	var allMachine []machine
 	for k, v := range AllInfo {
 		//仅在有这个业务的主机里寻找
-		if core.StringInSlice(k,hosts){
+		if core.StringInSlice(k, hosts) {
 			allMachine = append(allMachine, machine{k, v.ProNum})
 		}
 	}
@@ -65,13 +76,14 @@ func balanceOne(hosts []string, p core.TaskMsg) (host string) {
 		//return allMachine[i].proNum > allMachine[j].proNum  // 降序
 		return allMachine[i].proNum < allMachine[j].proNum // 升序
 	})
+
 	for _, v := range allMachine {
 		host = v.ip
 		if _, err := netAvailable(host); err != nil {
-			log.Debug().Msgf("任务: %s在节点 %s都有部署,任务数最低的节点: %s不可用,更换下一个", p.Worker, hosts, host)
+			log.Debug().Msgf("任务: %s在节点 %s都有部署,任务数最低的节点: %s不可用,更换下一个", p.Worker, allMachine, host)
 			continue
 		}
-		log.Debug().Msgf("任务: %s在节点 %s都有部署,投送到任务数最低的节点: %s执行", p.Route, hosts, host)
+		log.Debug().Msgf("任务: %s在节点 %s都有部署,投送到任务数最低的节点: %s执行", p.Worker, allMachine, host)
 		return host
 	}
 	return ""
@@ -95,4 +107,3 @@ func randOne(hosts []string, p core.TaskMsg) (host string) {
 	}
 	return ""
 }
-
