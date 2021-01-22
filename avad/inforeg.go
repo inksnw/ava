@@ -16,6 +16,8 @@ func getNodeInfo(host string, c *websocket.Conn) {
 		err := c.ReadJSON(&p)
 		if err != nil {
 			log.Debug().Msgf("读取节点: %s信息失败 %s", host, err)
+			wsStatus.Set(host, false)
+
 			return
 		}
 
