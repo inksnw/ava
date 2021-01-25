@@ -77,13 +77,16 @@ func balanceOne(hosts []string, p core.TaskMsg) (host string) {
 		return allMachine[i].proNum < allMachine[j].proNum // 升序
 	})
 
+	var workderMachine []string
+
 	for _, v := range allMachine {
 		host = v.ip
+		workderMachine = append(workderMachine, host)
 		if _, err := netAvailable(host); err != nil {
-			log.Debug().Msgf("任务: %s在节点 %s都有部署,任务数最低的节点: %s不可用,更换下一个", p.Worker, allMachine, host)
+			log.Debug().Msgf("任务: %s在节点 %s都有部署,任务数最低的节点: %s不可用,更换下一个", p.Worker, workderMachine, host)
 			continue
 		}
-		log.Debug().Msgf("任务: %s在节点 %s都有部署,投送到任务数最低的节点: %s执行", p.Worker, allMachine, host)
+		log.Debug().Msgf("任务: %s在节点 %s都有部署,投送到任务数最低的节点: %s执行", p.Worker, workderMachine, host)
 		return host
 	}
 	return ""
