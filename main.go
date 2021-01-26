@@ -43,7 +43,7 @@ func main() {
 	}
 
 	if len(os.Args) > 1 {
-		log.Info().Msgf("程序启动以管理模式运行,配置文件为: %s", os.Args[1])
+		log.Info().Msgf("程序启动以管理模式运行")
 		nodes := LoadConfig(os.Args[1])
 		avad.Manger(nodes)
 	}
@@ -58,7 +58,7 @@ func LoadConfig(config string) []string {
 	viper.SetConfigFile(config)
 	err := viper.ReadInConfig()
 	if err != nil {
-		log.Debug().Msgf("配置文件读取失败: %s\n", err)
+		log.Error().Msgf("配置文件读取失败: %s", err)
 		os.Exit(1)
 	}
 

@@ -3,6 +3,7 @@ package avah
 import (
 	"ava/core"
 	"context"
+	"fmt"
 	"github.com/phuslu/log"
 	"io"
 	"io/ioutil"
@@ -19,7 +20,7 @@ func executor(command, arg, taskid, dir string) {
 	filename := tmpConfig(dir, arg)
 
 	script := strings.Split(command, " ")
-	log.Debug().Msgf("启动器接到命令: %s %s %s %s\n", script[0], script[1], "placeholder", filename)
+	log.Info().Msgf("启动器接到命令: %s %s %s %s", script[0], script[1], "placeholder", filename)
 	log.Debug().Msgf("工作目录 %s", dir)
 	cmd := exec.CommandContext(ctx, script[0], script[1], "placeholder", filename)
 	cmd.Dir = dir
@@ -45,13 +46,15 @@ func executor(command, arg, taskid, dir string) {
 	// 从管道中实时获取输出并打印到终端
 	go asyncLog(ctx, stdout, dstlog)
 
-	log.Debug().Msgf("程序%s %s成功启动,任务id: %s 进程id: %d", script[0], script[1], taskid, cmd.Process.Pid)
+	log.Info().Msgf("程序%s %s成功启动,任务id: %s 进程id: %d", script[0], script[1], taskid, cmd.Process.Pid)
 	core.ProcessStatus.Set(taskid, cmd.Process.Pid)
 
 	go func() {
 		err := cmd.Wait()
 		if err != nil {
-			log.Error().Msgf("进程 %s异常退出 %s", dstlog, err)
+			log.Error().Msgf("进程 %s异常退出 %s", logfile, err)
+			e := fmt.Sprintf("进程异常退出 %s\n", err)
+			dstlog.Write([]byte(e))
 		}
 		cancel()
 		if err := os.Remove(filename); err != nil {
@@ -113,7 +116,7 @@ func asyncLog(ctx context.Context, stdout io.ReadCloser, dstlog *os.File) {
 	for {
 		select {
 		case <-ctx.Done():
-			log.Debug().Msgf("进程结束日志协程退出")
+			log.Info().Msgf("进程结束日志协程退出")
 			return
 		default:
 			strNum, err := stdout.Read(buf)

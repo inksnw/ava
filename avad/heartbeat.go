@@ -17,39 +17,36 @@ func ping() {
 	ticker := time.NewTicker(pingPeriod)
 	defer ticker.Stop()
 	for {
-		ch := wsConns.IterBuffered()
+		ch := ConnStatus.IterBuffered()
 		for item := range ch {
 			host := item.Key
-			ws, ok := item.Val.(*websocket.Conn)
-			if !ok {
-				reconnect(host)
+			ins, _ := item.Val.(*ConnStruct)
+			if !ins.status {
+				reconnect(host,ins)
 				continue
 			}
 
-			ws.SetPongHandler(func(string) error { ws.SetReadDeadline(time.Now().Add(core.PongWait)); return nil })
-			err := ws.WriteMessage(websocket.PingMessage, []byte{})
+			ping := func(string) error {
+				_ = ins.conn.SetReadDeadline(time.Now().Add(core.PongWait))
+				return nil
+			}
+
+			ins.conn.SetPongHandler(ping)
+			err := ins.conn.WriteMessage(websocket.PingMessage, []byte{})
 			if err != nil {
-				log.Error().Msgf("节点 %s的ws心跳检测失败,重新连接 %s", host, err)
-				reconnect(host)
+				log.Error().Msgf("节点 %s心跳检测失败,重新连接 %s", host, err)
+				reconnect(host,ins)
 				continue
 			}
-
-			status, _ := tcpStatus.Get(host)
-			if !status.(bool) {
-				log.Error().Msgf("节点 %s tcp中断,重新连接", host)
-				addrTcp := strings.Join([]string{host, ":", core.TcpPort}, "")
-				go dialTcp(addrTcp)
-			}
-
-			//log.Debug().Msgf("节点 %s的ws心跳检测正常", host)
+			log.Debug().Msgf("节点 %s的ws心跳检测正常", host)
 		}
 		<-ticker.C
 	}
 }
 
-func reconnect(host string) {
+func reconnect(host string,ins *ConnStruct) {
 	addrWs := strings.Join([]string{host, ":", core.WsPort}, "")
 	addrTcp := strings.Join([]string{host, ":", core.TcpPort}, "")
-	go dialWs(addrWs)
-	go dialTcp(addrTcp)
+	go dialWs(addrWs,ins)
+	go dialTcp(addrTcp,ins)
 }

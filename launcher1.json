@@ -1,7 +1,7 @@
 {
     "worker": "gather_spider",
     "command": "python3 deal.py",
-    "dir": "/home/ubuntu/deploy/gather_spider"
+    "dir": "/root/test"
 }
 
 

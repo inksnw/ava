@@ -2,7 +2,6 @@ package avad
 
 import (
 	"ava/core"
-	"github.com/gorilla/websocket"
 	"github.com/phuslu/log"
 )
 
@@ -10,13 +9,13 @@ var workerMap = make(map[string][]string)
 var workerMapR = make(map[string][]string)
 var AllInfo = make(map[string]core.PcInfo)
 
-func getNodeInfo(host string, c *websocket.Conn) {
+func getNodeInfo(host string, ins *ConnStruct) {
 	for {
 		p := make(map[string]core.LauncherConf)
-		err := c.ReadJSON(&p)
+		err := ins.conn.ReadJSON(&p)
 		if err != nil {
 			log.Error().Msgf("读取节点: %s信息失败 %s", host, err)
-			wsStatus.Set(host, false)
+			ins.status = false
 
 			return
 		}

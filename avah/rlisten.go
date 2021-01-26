@@ -22,7 +22,6 @@ func listenTcp() {
 		log.Error().Msgf("监听地址失败 %s: %v", address, err)
 		panic(err)
 	}
-	var session *yamux.Session
 
 	for {
 		conn, err := listener.Accept()
@@ -35,7 +34,7 @@ func listenTcp() {
 		log.Info().Msgf("接收到管理端tcp连接")
 		//_ = conn.SetReadDeadline(time.Now().Add(proxytout))
 		//conn.SetReadDeadline(time.Now().Add(100 * time.Hour))
-		session, err = yamux.Client(conn, nil)
+		session, err := yamux.Client(conn, nil)
 		if err != nil {
 			log.Error().Msgf("建立yamux session失败 %s", err)
 		}
@@ -52,7 +51,6 @@ func listenSocks(session *yamux.Session, agentStr string) {
 	address := strings.Join([]string{"0.0.0.0", ":", core.SocksPort}, "")
 
 	if !lis {
-		log.Info().Msgf("管理端%s 等待本地连接到 %s", agentStr, address)
 		socksListen, err = net.Listen("tcp", address)
 		if err != nil {
 			log.Error().Msgf("本地socks5端口监听失败 %s", err)

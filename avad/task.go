@@ -78,17 +78,18 @@ func workerAvailable(host, workerdst string) (hostdst string) {
 
 func netAvailable(host string) (conn *websocket.Conn, err error) {
 
-	ws, ok := wsConns.Get(host)
+	ins, ok := ConnStatus.Get(host)
 	if !ok {
 		return nil, fmt.Errorf("未找到节点: %s,请检查输入", host)
 	}
-	conn = ws.(*websocket.Conn)
-	status, _ := wsStatus.Get(host)
-	if !status.(bool) {
+	instance := ins.(*ConnStruct)
+
+	instance = ins.(*ConnStruct)
+	if !instance.status {
 		return nil, fmt.Errorf("节点: %s,网络中断", host)
 	}
 
-	return conn, nil
+	return instance.conn, nil
 
 }
 
@@ -98,12 +99,15 @@ func send(host string, p core.TaskMsg) (code int, msg string) {
 		return 400, fmt.Sprintf("%s", err)
 	}
 
+	ins, _ := ConnStatus.Get(host)
+	instance := ins.(*ConnStruct)
+
 	if conn != nil {
 		log.Debug().Msgf("发送前原始参数: %s  %s  %s", p.Worker, p.Route, p.TaskID)
 		err = conn.WriteJSON(p)
 		if err != nil {
 			log.Info().Msgf("投送失败,节点: %s可能已不在线", host)
-			wsStatus.Set(host, false)
+			instance.status = false
 			return 400, fmt.Sprintf("投送失败,节点: %s可能已不在线 %s", host, err)
 		}
 	}
