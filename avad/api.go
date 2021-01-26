@@ -15,8 +15,7 @@ func webWsStatus(w http.ResponseWriter, r *http.Request) {
 	rv["tcp"] = tcpStatus
 	err := json.NewEncoder(w).Encode(rv)
 	if err != nil {
-		//... handle error
-		panic(err)
+		log.Error().Msgf("返回前端接口失败 %s", err)
 	}
 
 }
@@ -24,8 +23,7 @@ func webWsStatus(w http.ResponseWriter, r *http.Request) {
 func webWorkerMapR(w http.ResponseWriter, r *http.Request) {
 	err := json.NewEncoder(w).Encode(workerMapR)
 	if err != nil {
-		//... handle error
-		panic(err)
+		log.Error().Msgf("返回前端接口失败 %s", err)
 	}
 
 }
@@ -33,8 +31,7 @@ func webWorkerMapR(w http.ResponseWriter, r *http.Request) {
 func info(w http.ResponseWriter, r *http.Request) {
 	err := json.NewEncoder(w).Encode(AllInfo)
 	if err != nil {
-		//... handle error
-		panic(err)
+		log.Error().Msgf("返回前端接口失败 %s", err)
 	}
 
 }
@@ -64,8 +61,7 @@ func getAllInfo(w http.ResponseWriter, r *http.Request) {
 	}
 	err := json.NewEncoder(w).Encode(rv)
 	if err != nil {
-		//... handle error
-		panic(err)
+		log.Error().Msgf("返回前端接口失败 %s", err)
 	}
 }
 
@@ -86,13 +82,13 @@ func getProxyInfo(w http.ResponseWriter, r *http.Request) {
 	req, _ := http.NewRequest("GET", url, nil)
 	resp, err := client.Do(req)
 	if err != nil {
-		log.Debug().Msgf("请求%s失败", url)
+		log.Error().Msgf("请求%s失败", url)
 		return
 	}
 	body, _ := ioutil.ReadAll(resp.Body)
 	_, err = w.Write(body)
 	if err != nil {
-		panic(err)
+		log.Error().Msgf("返回前端接口失败 %s", err)
 	}
 	defer resp.Body.Close()
 

@@ -17,7 +17,7 @@ func sendMsg() {
 		msg := <-taskchan
 		err := conn.WriteJSON(msg)
 		if err != nil {
-			log.Debug().Msgf("更新节点信息失败 %s", err)
+			log.Error().Msgf("更新节点信息失败 %s", err)
 			return
 		}
 

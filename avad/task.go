@@ -102,7 +102,7 @@ func send(host string, p core.TaskMsg) (code int, msg string) {
 		log.Debug().Msgf("发送前原始参数: %s  %s  %s", p.Worker, p.Route, p.TaskID)
 		err = conn.WriteJSON(p)
 		if err != nil {
-			log.Debug().Msgf("投送失败,节点: %s可能已不在线", host)
+			log.Info().Msgf("投送失败,节点: %s可能已不在线", host)
 			wsStatus.Set(host, false)
 			return 400, fmt.Sprintf("投送失败,节点: %s可能已不在线 %s", host, err)
 		}

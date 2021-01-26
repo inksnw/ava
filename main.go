@@ -37,13 +37,18 @@ func main() {
 		baseLog.Println(http.ListenAndServe("localhost:6060", nil))
 	}()
 
+	log.DefaultLogger = log.Logger{
+		Level: log.InfoLevel,
+		Caller:     1,
+	}
+
 	if len(os.Args) > 1 {
-		log.Debug().Msgf("程序启动以管理模式运行,配置文件为: %s\n", os.Args[1])
+		log.Info().Msgf("程序启动以管理模式运行,配置文件为: %s", os.Args[1])
 		nodes := LoadConfig(os.Args[1])
 		avad.Manger(nodes)
 	}
 
-	log.Debug().Msgf("程序启动以节点模式运行")
+	log.Info().Msgf("程序启动以节点模式运行")
 	avah.Node()
 
 }
@@ -56,6 +61,7 @@ func LoadConfig(config string) []string {
 		log.Debug().Msgf("配置文件读取失败: %s\n", err)
 		os.Exit(1)
 	}
+
 	nodes := viper.GetStringSlice("nodes")
 	core.Sites = viper.GetStringSlice("sites")
 	core.PerMachineProcess = viper.GetInt("permachineprocess")

@@ -16,10 +16,10 @@ var lis = false
 // listen for agents
 func listenTcp() {
 	address := strings.Join([]string{"0.0.0.0", ":", core.TcpPort}, "")
-	log.Debug().Msgf("tcp监听地址: %s ", address)
+	log.Info().Msgf("tcp监听地址: %s ", address)
 	listener, err := net.Listen("tcp", address)
 	if err != nil {
-		log.Debug().Msgf("监听地址失败 %s: %v", address, err)
+		log.Error().Msgf("监听地址失败 %s: %v", address, err)
 		panic(err)
 	}
 	var session *yamux.Session
@@ -27,17 +27,17 @@ func listenTcp() {
 	for {
 		conn, err := listener.Accept()
 		if err != nil {
-			log.Debug().Msgf("接收管理端连接失败 %s", err)
+			log.Error().Msgf("接收管理端连接失败 %s", err)
 			continue
 		}
 
 		agentStr := conn.RemoteAddr().String()
-		log.Debug().Msgf("接收到管理端tcp连接")
+		log.Info().Msgf("接收到管理端tcp连接")
 		//_ = conn.SetReadDeadline(time.Now().Add(proxytout))
 		//conn.SetReadDeadline(time.Now().Add(100 * time.Hour))
 		session, err = yamux.Client(conn, nil)
 		if err != nil {
-			log.Debug().Msgf("建立yamux session失败 %s", err)
+			log.Error().Msgf("建立yamux session失败 %s", err)
 		}
 		go listenSocks(session, agentStr)
 
@@ -52,10 +52,10 @@ func listenSocks(session *yamux.Session, agentStr string) {
 	address := strings.Join([]string{"0.0.0.0", ":", core.SocksPort}, "")
 
 	if !lis {
-		log.Debug().Msgf("管理端%s 等待本地连接到 %s", agentStr, address)
+		log.Info().Msgf("管理端%s 等待本地连接到 %s", agentStr, address)
 		socksListen, err = net.Listen("tcp", address)
 		if err != nil {
-			log.Debug().Msgf("本地socks5端口监听失败 %s", err)
+			log.Error().Msgf("本地socks5端口监听失败 %s", err)
 			panic(err)
 		}
 		lis = true
@@ -64,13 +64,13 @@ func listenSocks(session *yamux.Session, agentStr string) {
 	for {
 		conn, err := socksListen.Accept()
 		if err != nil {
-			log.Debug().Msgf("[%s] 接收本地请求失败 %s: %v", agentStr, address, err)
+			log.Error().Msgf("[%s] 接收本地请求失败 %s: %v", agentStr, address, err)
 			continue
 		}
 
 		stream, err := session.Open()
 		if err != nil {
-			log.Debug().Msgf("[%s] 开启stream失败 %s: %v", agentStr, conn.RemoteAddr(), err)
+			log.Error().Msgf("[%s] 开启stream失败 %s: %v", agentStr, conn.RemoteAddr(), err)
 			_ = session.Close()
 			return
 		}

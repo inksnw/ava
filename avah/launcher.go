@@ -16,7 +16,7 @@ func executor(command, arg, taskid, dir string) {
 	//go reaper.Reap()
 
 	ctx, cancel := context.WithCancel(context.Background())
-	filename := fileConfig(dir, arg)
+	filename := tmpConfig(dir, arg)
 
 	script := strings.Split(command, " ")
 	log.Debug().Msgf("启动器接到命令: %s %s %s %s\n", script[0], script[1], "placeholder", filename)
@@ -27,14 +27,15 @@ func executor(command, arg, taskid, dir string) {
 	stdout, err := cmd.StdoutPipe()
 	cmd.Stderr = cmd.Stdout
 	if err != nil {
-		log.Debug().Msgf("开启日志管道失败")
+		log.Error().Msgf("开启日志管道失败")
 	}
 
 	if err = cmd.Start(); err != nil {
-		log.Debug().Msgf("程序%s %s启动失败,任务id: %s,%s", script[0], script[1], taskid, err)
+		log.Error().Msgf("程序%s %s启动失败,任务id: %s,%s", script[0], script[1], taskid, err)
 		if err := os.Remove(filename); err != nil {
-			log.Debug().Msgf("程序启动失败,临时参数文件删除失败 %s", err)
+			log.Error().Msgf("程序启动失败,临时参数文件删除失败 %s", err)
 		}
+		cancel()
 		return
 	}
 
@@ -48,10 +49,13 @@ func executor(command, arg, taskid, dir string) {
 	core.ProcessStatus.Set(taskid, cmd.Process.Pid)
 
 	go func() {
-		cmd.Wait()
+		err := cmd.Wait()
+		if err != nil {
+			log.Error().Msgf("进程 %s异常退出 %s", dstlog, err)
+		}
 		cancel()
 		if err := os.Remove(filename); err != nil {
-			log.Debug().Msgf("任务执行完成,临时参数文件删除失败 %s", err)
+			log.Error().Msgf("任务执行完成,临时参数文件删除失败 %s", err)
 		}
 		log.Debug().Msgf("任务: %s 执行完成,退出", command)
 		core.ProcessStatus.Remove(taskid)
@@ -59,15 +63,15 @@ func executor(command, arg, taskid, dir string) {
 
 }
 
-func fileConfig(dir, arg string) (filename string) {
+func tmpConfig(dir, arg string) (filename string) {
 	tmpFile, err := ioutil.TempFile(dir, "arg-")
 	if err != nil {
-		log.Debug().Msgf("创建文件型参数失败: %s", err)
+		log.Error().Msgf("创建文件型参数失败: %s", err)
 		return ""
 	}
 	_, err = tmpFile.Write([]byte(arg))
 	if err != nil {
-		log.Debug().Msgf("向参数文件写入内容失败 %s", err)
+		log.Error().Msgf("向参数文件写入内容失败 %s", err)
 		return ""
 	}
 	return tmpFile.Name()
@@ -78,13 +82,13 @@ func createFile(filename string) (file *os.File) {
 	if Exists(filename) {
 		file, err = os.OpenFile(filename, os.O_WRONLY|os.O_APPEND, 0666)
 		if err != nil {
-			log.Debug().Msgf("文件%s打开失败%s", filename, err)
+			log.Error().Msgf("文件%s打开失败%s", filename, err)
 			return nil
 		}
 	} else {
 		file, err = os.OpenFile(filename, os.O_WRONLY|os.O_CREATE, 0666)
 		if err != nil {
-			log.Debug().Msgf("文件%s创建失败%s", filename, err)
+			log.Error().Msgf("文件%s创建失败%s", filename, err)
 			return nil
 		}
 	}

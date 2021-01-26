@@ -19,7 +19,7 @@ func dialTcp(address string) {
 
 	conn, err := net.Dial("tcp", address)
 	if err != nil {
-		log.Debug().Msgf("连接远端tcp通道 %s失败,%s后重试", address, core.PongWait)
+		log.Error().Msgf("连接远端tcp通道 %s失败,%s后重试", address, core.PongWait)
 		return
 	}
 	tcpStatus.Set(host, true)
@@ -38,7 +38,7 @@ func relay(host string, session *yamux.Session, server *socks5.Server) {
 	for {
 		stream, err := session.Accept()
 		if err != nil {
-			log.Debug().Msgf("公网节点无法连接%s可能已经关闭", host)
+			log.Error().Msgf("公网节点无法连接%s可能已经关闭", host)
 			tcpStatus.Set(host, false)
 			break
 		}
@@ -46,7 +46,7 @@ func relay(host string, session *yamux.Session, server *socks5.Server) {
 		go func() {
 			err = server.ServeConn(stream)
 			if err != nil {
-				log.Debug().Err(err)
+				log.Error().Err(err)
 			}
 		}()
 	}
@@ -60,7 +60,7 @@ func dialWs(addr string) {
 	u := url.URL{Scheme: "ws", Host: addr, Path: "/ws"}
 	c, _, err := websocket.DefaultDialer.Dial(u.String(), nil)
 	if err != nil {
-		log.Debug().Msgf("尝试连接节点ws通道%s失败,%s后重试:\n", addr, core.PongWait)
+		log.Error().Msgf("尝试连接节点ws通道%s失败,%s后重试:\n", addr, core.PongWait)
 		return
 	}
 	wsStatus.Set(host, true)
