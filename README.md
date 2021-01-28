@@ -81,7 +81,5 @@ python3 deal.py placeholder /home/ubuntu/deploy/gather_spider/{params的base64�
 
 
 ##### 4 bug
-- [ ] 断开连接后,第一次发送请求,依然会报成功  
-- [ ] tcp的重连未处理
-- [ ] 命令行异常退出未捕获
 - [ ] concurrent write to websocket connection
+- [ ] ws读取超时

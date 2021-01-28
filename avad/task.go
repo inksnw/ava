@@ -103,11 +103,15 @@ func send(host string, p core.TaskMsg) (code int, msg string) {
 	instance := ins.(*ConnStruct)
 
 	if conn != nil {
-		log.Debug().Msgf("发送前原始参数: %s  %s  %s", p.Worker, p.Route, p.TaskID)
+		log.Info().Msgf("发送前原始参数: %s  %s  %s", p.Worker, p.Route, p.TaskID)
 		err = conn.WriteJSON(p)
 		if err != nil {
-			log.Info().Msgf("投送失败,节点: %s可能已不在线", host)
+			log.Error().Msgf("投送失败,节点: %s可能已不在线", host)
 			instance.status = false
+			err = instance.conn.Close()
+			if err != nil {
+				log.Error().Msgf("关闭连接失败: %s", err)
+			}
 			return 400, fmt.Sprintf("投送失败,节点: %s可能已不在线 %s", host, err)
 		}
 	}

@@ -15,14 +15,14 @@ func dialTcp(address string, ins *ConnStruct) {
 	var session *yamux.Session
 	server, _ := socks5.New(&socks5.Config{})
 	host := strings.Split(address, ":")[0]
-	ins.status=false
+	ins.status = false
 
 	conn, err := net.Dial("tcp", address)
 	if err != nil {
 		log.Error().Msgf("连接远端tcp通道%s失败,%s后重试", address, core.PongWait)
 		return
 	}
-	ins.status=true
+	ins.status = true
 	log.Info().Msgf("已连接节点tcp通道%s", address)
 
 	session, err = yamux.Server(conn, nil)
@@ -31,15 +31,14 @@ func dialTcp(address string, ins *ConnStruct) {
 		session.Close()
 		panic(err)
 	}
-	relay(host, session, server,ins)
+	relay(host, session, server, ins)
 }
 
-func relay(host string, session *yamux.Session, server *socks5.Server,ins *ConnStruct) {
+func relay(host string, session *yamux.Session, server *socks5.Server, ins *ConnStruct) {
 	for {
 		stream, err := session.Accept()
 		if err != nil {
-			log.Error().Msgf("公网节点无法连接%s可能已经关闭", host)
-			ins.status=false
+			log.Error().Msgf("公网节点无法连接%s可能已经关闭 %s", host, err)
 			break
 		}
 		log.Debug().Msgf("代理转发通信 %s %s", stream.LocalAddr(), stream.RemoteAddr())
@@ -59,6 +58,7 @@ func dialWs(addr string, ins *ConnStruct) {
 
 	u := url.URL{Scheme: "ws", Host: addr, Path: "/ws"}
 	c, _, err := websocket.DefaultDialer.Dial(u.String(), nil)
+
 	if err != nil {
 		log.Error().Msgf("连接节点ws通道%s失败,%s后重试:", addr, core.PongWait)
 		return

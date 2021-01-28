@@ -3,6 +3,7 @@ package avad
 import (
 	"ava/core"
 	"github.com/phuslu/log"
+	"time"
 )
 
 var workerMap = make(map[string][]string)
@@ -12,10 +13,16 @@ var AllInfo = make(map[string]core.PcInfo)
 func getNodeInfo(host string, ins *ConnStruct) {
 	for {
 		p := make(map[string]core.LauncherConf)
+		_ = ins.conn.SetReadDeadline(time.Now().Add(30 * time.Second))
 		err := ins.conn.ReadJSON(&p)
 		if err != nil {
 			log.Error().Msgf("读取节点: %s信息失败 %s", host, err)
+			//todo 暂无法解决
 			ins.status = false
+			err = ins.conn.Close()
+			if err != nil {
+				log.Error().Msgf("关闭连接失败: %s", err)
+			}
 
 			return
 		}

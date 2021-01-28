@@ -49,7 +49,7 @@ func dial(w http.ResponseWriter, r *http.Request) {
 	for {
 		err := conn.ReadJSON(&p)
 		if err != nil {
-			log.Error().Msgf("读取数据失败,管理节点可能已关闭")
+			log.Error().Msgf("读取数据失败,管理节点可能已关闭 %s",err)
 			break
 		}
 		//接收信息,给到路由分发
