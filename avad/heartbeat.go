@@ -22,7 +22,7 @@ func ping() {
 			host := item.Key
 			ins, _ := item.Val.(*ConnStruct)
 			if !ins.status {
-				reconnect(host,ins)
+				reconnect(host, ins)
 				continue
 			}
 
@@ -35,7 +35,7 @@ func ping() {
 			err := ins.conn.WriteMessage(websocket.PingMessage, []byte{})
 			if err != nil {
 				log.Error().Msgf("节点 %s心跳检测失败,重新连接 %s", host, err)
-				reconnect(host,ins)
+				reconnect(host, ins)
 				continue
 			}
 			log.Debug().Msgf("节点 %s的ws心跳检测正常", host)
@@ -44,9 +44,17 @@ func ping() {
 	}
 }
 
-func reconnect(host string,ins *ConnStruct) {
+func reconnect(host string, ins *ConnStruct) {
+	if ins.conn != nil {
+		err := ins.conn.Close()
+		if err != nil {
+			log.Debug().Msgf("尝试关闭上一个ws连接失败 %s", err)
+		}
+
+	}
+
 	addrWs := strings.Join([]string{host, ":", core.WsPort}, "")
 	addrTcp := strings.Join([]string{host, ":", core.TcpPort}, "")
-	go dialWs(addrWs,ins)
-	go dialTcp(addrTcp,ins)
+	go dialWs(addrWs, ins)
+	go dialTcp(addrTcp, ins)
 }

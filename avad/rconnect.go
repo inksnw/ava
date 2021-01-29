@@ -15,7 +15,6 @@ func dialTcp(address string, ins *ConnStruct) {
 	var session *yamux.Session
 	server, _ := socks5.New(&socks5.Config{})
 	host := strings.Split(address, ":")[0]
-	ins.status = false
 
 	conn, err := net.Dial("tcp", address)
 	if err != nil {
@@ -31,10 +30,10 @@ func dialTcp(address string, ins *ConnStruct) {
 		session.Close()
 		panic(err)
 	}
-	relay(host, session, server, ins)
+	relay(host, session, server)
 }
 
-func relay(host string, session *yamux.Session, server *socks5.Server, ins *ConnStruct) {
+func relay(host string, session *yamux.Session, server *socks5.Server) {
 	for {
 		stream, err := session.Accept()
 		if err != nil {
