@@ -11,11 +11,22 @@ import (
 	"strings"
 )
 
-func dialTcp(address string, ins *ConnStruct) {
+func dialConn(address, addrWs string, ins *ConnStruct) {
+
+	host := strings.Split(addrWs, ":")[0]
+	u := url.URL{Scheme: "ws", Host: addrWs, Path: "/ws"}
+	c, _, err := websocket.DefaultDialer.Dial(u.String(), nil)
+	if err != nil {
+		log.Error().Msgf("连接节点ws通道%s失败,%s后重试:", addrWs, core.PongWait)
+		return
+	}
+	ins.conn = c
+	log.Info().Msgf("已连接节点ws通道%s", addrWs)
+	go getNodeInfo(host, ins)
+
 	var session *yamux.Session
 	server, _ := socks5.New(&socks5.Config{})
-	host := strings.Split(address, ":")[0]
-
+	host = strings.Split(address, ":")[0]
 	conn, err := net.Dial("tcp", address)
 	if err != nil {
 		log.Error().Msgf("连接远端tcp通道%s失败,%s后重试", address, core.PongWait)
@@ -23,22 +34,24 @@ func dialTcp(address string, ins *ConnStruct) {
 	}
 	ins.status = true
 	log.Info().Msgf("已连接节点tcp通道%s", address)
-
 	session, err = yamux.Server(conn, nil)
 	if err != nil {
 		//todo 这里的处理好像还有坑
 		session.Close()
 		panic(err)
 	}
-	relay(host, session, server)
+	err = relay(host, session, server)
+	if err != nil {
+		ins.reconnect(host)
+	}
 }
 
-func relay(host string, session *yamux.Session, server *socks5.Server) {
+func relay(host string, session *yamux.Session, server *socks5.Server) (err error) {
 	for {
 		stream, err := session.Accept()
 		if err != nil {
-			log.Error().Msgf("公网节点无法连接%s可能已经关闭 %s", host, err)
-			break
+			log.Error().Msgf("公网节点无法连接%s可能已经关闭,立刻重连 %s", host, err)
+			return err
 		}
 		log.Debug().Msgf("代理转发通信 %s %s", stream.LocalAddr(), stream.RemoteAddr())
 		go func() {
@@ -48,23 +61,4 @@ func relay(host string, session *yamux.Session, server *socks5.Server) {
 			}
 		}()
 	}
-
-}
-
-func dialWs(addr string, ins *ConnStruct) {
-	host := strings.Split(addr, ":")[0]
-	ins.status = false
-
-	u := url.URL{Scheme: "ws", Host: addr, Path: "/ws"}
-	c, _, err := websocket.DefaultDialer.Dial(u.String(), nil)
-
-	if err != nil {
-		log.Error().Msgf("连接节点ws通道%s失败,%s后重试:", addr, core.PongWait)
-		return
-	}
-
-	ins.status = true
-	ins.conn = c
-	log.Info().Msgf("已连接节点ws通道%s", addr)
-	go getNodeInfo(host, ins)
 }

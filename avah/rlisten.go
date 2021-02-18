@@ -73,8 +73,8 @@ func listenSocks(session *yamux.Session, agentStr string) {
 			return
 		}
 		go relay(conn, stream)
-
 	}
+
 }
 
 func relay(conn, stream net.Conn) {

@@ -16,9 +16,8 @@ func getNodeInfo(host string, ins *ConnStruct) {
 		_ = ins.conn.SetReadDeadline(time.Now().Add(30 * time.Second))
 		err := ins.conn.ReadJSON(&p)
 		if err != nil {
-			log.Error().Msgf("读取节点: %s信息失败 %s", host, err)
-			reconnect(host,ins)
-
+			log.Error().Msgf("读取节点: %s信息失败,立刻重连 %s,", host, err)
+			ins.reconnect(host)
 			return
 		}
 

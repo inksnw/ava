@@ -1,7 +1,7 @@
 {
-    "worker": "gather_spider",
+    "worker": "bot_register",
     "command": "python3 deal.py",
-    "dir": "/root/test"
+    "dir": "/root/ava/reg"
 }
 
 

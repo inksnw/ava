@@ -126,7 +126,7 @@ func (s *Server) handleRequest(req *Request, conn conn) error {
 
 	if dest.FQDN != "" {
 
-		log.Debug().Msgf("内网穿透访问域名 %s %d\n", dest.FQDN, dest.Port)
+		log.Info().Msgf("内网穿透访问域名 %s %d", dest.FQDN, dest.Port)
 		dstName := dest.FQDN
 		if !iptable.Allow(dstName) {
 			return fmt.Errorf("目标地址: %s不允许访问", dstName)
@@ -145,7 +145,7 @@ func (s *Server) handleRequest(req *Request, conn conn) error {
 
 	// Apply any address rewrites
 	req.realDestAddr = req.DestAddr
-	log.Debug().Msgf("内网穿透访问ip %s %d\n", req.DestAddr.IP, req.DestAddr.Port)
+	log.Info().Msgf("内网穿透访问ip %s %d", req.DestAddr.IP, req.DestAddr.Port)
 
 	dstName := req.DestAddr.IP.String()
 	if !iptable.Allow(dstName) {

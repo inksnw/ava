@@ -20,7 +20,6 @@ func sendMsg() {
 			log.Error().Msgf("更新节点信息失败 %s", err)
 			return
 		}
-
 	}
 }
 

@@ -83,10 +83,10 @@ func balanceOne(hosts []string, p core.TaskMsg) (host string) {
 		host = v.ip
 		workderMachine = append(workderMachine, host)
 		if _, err := netAvailable(host); err != nil {
-			log.Debug().Msgf("任务: %s在节点 %s都有部署,任务数最低的节点: %s不可用,更换下一个", p.Worker, workderMachine, host)
+			log.Info().Msgf("任务[%s:%s]在节点 %s都有部署,任务数最低的节点: %s不可用,更换下一个", p.Worker, p.TaskID, workderMachine, host)
 			continue
 		}
-		log.Debug().Msgf("任务: %s在节点 %s都有部署,投送到任务数最低的节点: %s执行", p.Worker, workderMachine, host)
+		log.Info().Msgf("任务: [%s:%s]在节点 %s都有部署,投送到任务数最低的节点: %s", p.Worker, p.TaskID, workderMachine, host)
 		return host
 	}
 	return ""
@@ -101,11 +101,11 @@ func randOne(hosts []string, p core.TaskMsg) (host string) {
 		index := r.Intn(len(tmp))
 		host = tmp[index]
 		if _, err := netAvailable(host); err != nil {
-			log.Debug().Msgf("任务: %s在节点 %s都有部署,随机节点: %s不可用,更换下一个", p.Worker, hosts, host)
+			log.Info().Msgf("任务[%s:%s]在节点 %s都有部署,随机节点: %s不可用,更换下一个", p.Worker, p.TaskID, hosts, host)
 			tmp = append(tmp[:index], tmp[index+1:]...)
 			continue
 		}
-		log.Debug().Msgf("任务: %s在节点 %s都有部署,随机投送到: %s执行", p.Route, hosts, host)
+		log.Info().Msgf("任务:[%s:%s]在节点 %s都有部署,随机投送到: %s执行", p.Worker, p.TaskID, hosts, host)
 		return host
 	}
 	return ""

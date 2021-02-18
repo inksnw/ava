@@ -18,7 +18,7 @@ type ConnStruct struct {
 func Manger(addrs []string) {
 
 	for _, host := range addrs {
-		ConnStatus.Set(host, &ConnStruct{false, nil})
+		ConnStatus.Set(host, &ConnStruct{status: false, conn: nil})
 	}
 
 	go ping()

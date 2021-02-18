@@ -83,12 +83,9 @@ func netAvailable(host string) (conn *websocket.Conn, err error) {
 		return nil, fmt.Errorf("未找到节点: %s,请检查输入", host)
 	}
 	instance := ins.(*ConnStruct)
-
-	instance = ins.(*ConnStruct)
 	if !instance.status {
 		return nil, fmt.Errorf("节点: %s,网络中断", host)
 	}
-
 	return instance.conn, nil
 
 }
