@@ -22,10 +22,6 @@ var ProcessStatus = cmap.New()
 type ProcessInfo struct {
 	TaskId  string
 	Pid     int32
-	Mem     uint64
-	Threads int32
-	Files   int
-	CpuPer  float64
 }
 
 type PcInfo struct {
