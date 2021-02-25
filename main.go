@@ -34,7 +34,7 @@ func main() {
 	runtime.SetMutexProfileFraction(1)
 	runtime.SetBlockProfileRate(1)
 	go func() {
-		baseLog.Println(http.ListenAndServe("localhost:6060", nil))
+		baseLog.Println(http.ListenAndServe("localhost:6161", nil))
 	}()
 
 	log.DefaultLogger = log.Logger{

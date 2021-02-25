@@ -50,4 +50,4 @@ var PerMachineProcess int
 //白名单
 var Sites []string
 
-var Version = "1.20"
+var Version = "1.21"

@@ -20,9 +20,13 @@ func executor(command, arg, taskid, dir string) {
 	filename := tmpConfig(dir, arg)
 
 	script := strings.Split(command, " ")
-	log.Info().Msgf("启动器接到命令: %s %s %s %s", script[0], script[1], "placeholder", filename)
+	script = append(script, "placeholder", filename)
+
+	name := script[0]
+	script = script[1:]
+
 	log.Debug().Msgf("工作目录 %s", dir)
-	cmd := exec.CommandContext(ctx, script[0], script[1], "placeholder", filename)
+	cmd := exec.CommandContext(ctx, name, script...)
 	cmd.Dir = dir
 
 	stdout, err := cmd.StdoutPipe()
@@ -32,7 +36,7 @@ func executor(command, arg, taskid, dir string) {
 	}
 
 	if err = cmd.Start(); err != nil {
-		log.Error().Msgf("程序%s %s启动失败,任务id: %s,%s", script[0], script[1], taskid, err)
+		log.Error().Msgf("程序启动失败,任务id: %s,%s",taskid, err)
 		if err := os.Remove(filename); err != nil {
 			log.Error().Msgf("程序启动失败,临时参数文件删除失败 %s", err)
 		}
@@ -46,7 +50,7 @@ func executor(command, arg, taskid, dir string) {
 	// 从管道中实时获取输出并打印到终端
 	go asyncLog(ctx, stdout, dstlog)
 
-	log.Info().Msgf("程序%s %s成功启动,任务id: %s 进程id: %d", script[0], script[1], taskid, cmd.Process.Pid)
+	log.Info().Msgf("程序启动成功,任务id: %s 进程id: %d", taskid, cmd.Process.Pid)
 	core.ProcessStatus.Set(taskid, cmd.Process.Pid)
 
 	go func() {
