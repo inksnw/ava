@@ -6,7 +6,7 @@ import (
 	"github.com/phuslu/log"
 )
 
-func taskrouter(p core.TaskMsg) {
+func taskRouter(p core.TaskMsg) {
 	cmd := allConfig[p.Worker].Command
 	var route string
 	if p.Route != "" {

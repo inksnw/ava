@@ -11,7 +11,7 @@ import (
 
 func fixed(p core.TaskMsg) (rv *result) {
 	log.Debug().Msgf("接到 %s的定点任务", p.Route)
-	_, err := netAvailable(p.Route)
+	err := netAvailable(p.Route)
 	if err != nil {
 		return &result{400, err.Error(), p.Route}
 	}
@@ -82,7 +82,7 @@ func balanceOne(hosts []string, p core.TaskMsg) (host string) {
 	for _, v := range allMachine {
 		host = v.ip
 		workderMachine = append(workderMachine, host)
-		if _, err := netAvailable(host); err != nil {
+		if err := netAvailable(host); err != nil {
 			log.Info().Msgf("任务[%s:%s]在节点 %s都有部署,任务数最低的节点: %s不可用,更换下一个", p.Worker, p.TaskID, workderMachine, host)
 			continue
 		}
@@ -100,7 +100,7 @@ func randOne(hosts []string, p core.TaskMsg) (host string) {
 		r := rand.New(s) // initialize local pseudorandom generator
 		index := r.Intn(len(tmp))
 		host = tmp[index]
-		if _, err := netAvailable(host); err != nil {
+		if err := netAvailable(host); err != nil {
 			log.Info().Msgf("任务[%s:%s]在节点 %s都有部署,随机节点: %s不可用,更换下一个", p.Worker, p.TaskID, hosts, host)
 			tmp = append(tmp[:index], tmp[index+1:]...)
 			continue

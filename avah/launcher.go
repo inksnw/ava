@@ -36,7 +36,7 @@ func executor(command, arg, taskid, dir string) {
 	}
 
 	if err = cmd.Start(); err != nil {
-		log.Error().Msgf("程序启动失败,任务id: %s,%s",taskid, err)
+		log.Error().Msgf("程序启动失败,任务id: %s,%s", taskid, err)
 		if err := os.Remove(filename); err != nil {
 			log.Error().Msgf("程序启动失败,临时参数文件删除失败 %s", err)
 		}

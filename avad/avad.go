@@ -2,23 +2,19 @@ package avad
 
 import (
 	"ava/core"
-	"github.com/gorilla/websocket"
 	"github.com/orcaman/concurrent-map"
 	"net/http"
 	"strings"
+	"sync"
 )
 
 var ConnStatus = cmap.New()
 
-type ConnStruct struct {
-	status bool
-	conn   *websocket.Conn
-}
-
 func Manger(addrs []string) {
 
 	for _, host := range addrs {
-		ConnStatus.Set(host, &ConnStruct{status: false, conn: nil})
+		var mutex sync.Mutex
+		ConnStatus.Set(host, &core.WsStruct{Status: false, Conn: nil, Mutex: &mutex})
 	}
 
 	go ping()

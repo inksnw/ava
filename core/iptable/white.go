@@ -14,4 +14,3 @@ func Allow(dst string) bool {
 	}
 	return true
 }
-

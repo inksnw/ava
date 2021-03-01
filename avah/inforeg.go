@@ -10,16 +10,18 @@ import (
 )
 
 var allConfig = make(map[string]core.LauncherConf)
-var taskchan = make(chan map[string]core.LauncherConf, 1024)
+var taskChan = make(chan map[string]core.LauncherConf, 1024)
 
 func sendMsg() {
 	for {
-		msg := <-taskchan
-		err := conn.WriteJSON(msg)
+		msg := <-taskChan
+		err := connIns.WJson(msg)
 		if err != nil {
 			log.Error().Msgf("更新节点信息失败 %s", err)
-			return
+			//return
+			panic(err)
 		}
+
 	}
 }
 

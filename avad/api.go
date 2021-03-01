@@ -8,8 +8,6 @@ import (
 	"net/http"
 )
 
-
-
 type webInfo struct {
 	Host     string   `json:"Host"`
 	Business []string `json:"Business"`
@@ -23,11 +21,11 @@ func getAllInfo(w http.ResponseWriter, r *http.Request) {
 	ch := ConnStatus.IterBuffered()
 	for item := range ch {
 		host := item.Key
-		ins, _ := item.Val.(*ConnStruct)
+		ins, _ := item.Val.(*core.WsStruct)
 		infoOne := webInfo{
 			Host:     host,
 			Business: workerMapR[host],
-			Status:   ins.status,
+			Status:   ins.Status,
 			PcInfo:   AllInfo[host],
 		}
 		rv = append(rv, infoOne)

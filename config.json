@@ -1,6 +1,6 @@
 {
     "nodes": [
-        "172.16.102.7"
+        "127.0.0.1"
     ],
     "sites": [],
     "permachineprocess":10

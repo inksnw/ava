@@ -11,7 +11,7 @@ import (
 	"strings"
 )
 
-func dialConn(address, addrWs string, ins *ConnStruct) {
+func DialConn(address, addrWs string, ins *core.WsStruct) {
 
 	host := strings.Split(addrWs, ":")[0]
 	u := url.URL{Scheme: "ws", Host: addrWs, Path: "/ws"}
@@ -20,7 +20,7 @@ func dialConn(address, addrWs string, ins *ConnStruct) {
 		log.Error().Msgf("连接节点ws通道%s失败,%s后重试:", addrWs, core.PongWait)
 		return
 	}
-	ins.conn = c
+	ins.Conn = c
 	log.Info().Msgf("已连接节点ws通道%s", addrWs)
 	go getNodeInfo(host, ins)
 
@@ -32,7 +32,7 @@ func dialConn(address, addrWs string, ins *ConnStruct) {
 		log.Error().Msgf("连接远端tcp通道%s失败,%s后重试", address, core.PongWait)
 		return
 	}
-	ins.status = true
+	ins.Status = true
 	log.Info().Msgf("已连接节点tcp通道%s", address)
 	session, err = yamux.Server(conn, nil)
 	if err != nil {
@@ -42,7 +42,7 @@ func dialConn(address, addrWs string, ins *ConnStruct) {
 	}
 	err = relay(host, session, server)
 	if err != nil {
-		ins.reconnect(host)
+		Reconnect(ins, host)
 	}
 }
 

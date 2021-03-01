@@ -4,7 +4,6 @@ import (
 	"ava/core"
 	"encoding/json"
 	"fmt"
-	"github.com/gorilla/websocket"
 	"github.com/phuslu/log"
 	"net/http"
 )
@@ -76,36 +75,37 @@ func workerAvailable(host, workerdst string) (hostdst string) {
 	return ""
 }
 
-func netAvailable(host string) (conn *websocket.Conn, err error) {
+func netAvailable(host string) (err error) {
 
 	ins, ok := ConnStatus.Get(host)
 	if !ok {
-		return nil, fmt.Errorf("未找到节点: %s,请检查输入", host)
+		return fmt.Errorf("未找到节点: %s,请检查输入", host)
 	}
-	instance := ins.(*ConnStruct)
-	if !instance.status {
-		return nil, fmt.Errorf("节点: %s,网络中断", host)
+	instance := ins.(*core.WsStruct)
+	if !instance.Status {
+		return fmt.Errorf("节点: %s,网络中断", host)
 	}
-	return instance.conn, nil
+	return nil
 
 }
 
 func send(host string, p core.TaskMsg) (code int, msg string) {
-	conn, err := netAvailable(host)
+	err := netAvailable(host)
 	if err != nil {
 		return 400, fmt.Sprintf("%s", err)
 	}
 
 	ins, _ := ConnStatus.Get(host)
-	instance := ins.(*ConnStruct)
+	instance := ins.(*core.WsStruct)
 
-	if conn != nil {
+	if instance.Conn != nil {
 		log.Info().Msgf("发送前原始参数: %s  %s  %s", p.Worker, p.Route, p.TaskID)
-		err = conn.WriteJSON(p)
+		err = instance.WJson(p)
+
 		if err != nil {
 			log.Error().Msgf("投送失败,节点: %s可能已不在线", host)
-			instance.status = false
-			err = instance.conn.Close()
+			instance.Status = false
+			err = instance.Conn.Close()
 			if err != nil {
 				log.Error().Msgf("关闭连接失败: %s", err)
 			}

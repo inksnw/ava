@@ -20,8 +20,8 @@ type LauncherConf struct {
 var ProcessStatus = cmap.New()
 
 type ProcessInfo struct {
-	TaskId  string
-	Pid     int32
+	TaskId string
+	Pid    int32
 }
 
 type PcInfo struct {

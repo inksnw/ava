@@ -38,8 +38,8 @@ func main() {
 	}()
 
 	log.DefaultLogger = log.Logger{
-		Level: log.InfoLevel,
-		Caller:     1,
+		Level:  log.InfoLevel,
+		Caller: 1,
 	}
 
 	if len(os.Args) > 1 {
