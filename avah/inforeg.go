@@ -18,8 +18,9 @@ func sendMsg() {
 		err := connIns.WJson(msg)
 		if err != nil {
 			log.Error().Msgf("回传信息失败 %s", err)
-			continue
+			return
 		}
+		//log.Info().Msgf("回传信息成功 %v", msg)
 	}
 }
 
@@ -47,4 +48,5 @@ func loadConfig(path string) {
 		}
 	}
 	msgChan <- allConfig
+	log.Error().Msgf("解析配置文件完成")
 }

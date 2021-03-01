@@ -14,7 +14,7 @@ import (
 var connIns *core.WsStruct
 
 func updateInfo() {
-	go sendMsg()
+	loadConfig(".")
 	viper.WatchConfig()
 	viper.OnConfigChange(func(in fsnotify.Event) {
 		log.Info().Msgf("配置文件发生变动,更新信息")
@@ -34,7 +34,7 @@ func dial(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	log.Info().Msgf("接到管理端ws连接")
-	loadConfig(".")
+	go sendMsg()
 	updateInfo()
 	updateProcess()
 	defer connIns.Conn.Close()

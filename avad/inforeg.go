@@ -6,14 +6,12 @@ import (
 	"time"
 )
 
-var workerMap map[string][]string
-var workerMapR map[string][]string
+var workerMap = make(map[string][]string)
+var workerMapR = make(map[string][]string)
 var AllInfo = make(map[string]core.PcInfo)
 
 func dealConfig(host string, p map[string]core.LauncherConf) {
-	//todo map并发安全
-	workerMap = make(map[string][]string)
-	workerMapR = make(map[string][]string)
+
 	for k, _ := range p {
 		workerMapR[host] = append(workerMapR[host], k)
 	}
@@ -31,6 +29,8 @@ func dealConfig(host string, p map[string]core.LauncherConf) {
 }
 
 func getNodeInfo(host string, ins *core.WsStruct) {
+	//todo map并发安全
+
 	for {
 		p := make(map[string]core.LauncherConf)
 		_ = ins.Conn.SetReadDeadline(time.Now().Add(30 * time.Second))
@@ -47,7 +47,7 @@ func getNodeInfo(host string, ins *core.WsStruct) {
 			continue
 		}
 		dealConfig(host, p)
-		//log.Debug().Msgf("读取节点: %s注册信息成功", host)
+		//log.Info().Msgf("读取节点: %s注册信息成功 +%v", host,p)
 	}
 
 }
