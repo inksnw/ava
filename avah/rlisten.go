@@ -2,16 +2,29 @@ package avah
 
 import (
 	"ava/core"
+	"flag"
 	"github.com/hashicorp/yamux"
 	"github.com/phuslu/log"
 	"io"
 	"net"
+	"net/http"
 	"strings"
 	"time"
 )
 
 var socksListen net.Listener
 var lis = false
+
+func listenHttp() {
+	http.HandleFunc("/log", serveHome)
+	http.HandleFunc("/wss", serveWs)
+	addr = flag.String("address", ":4564", "http service address")
+	address := strings.Join([]string{"0.0.0.0", ":", "4564"}, "")
+	log.Info().Msgf("http监听地址: %s ", address)
+	if err := http.ListenAndServe(*addr, nil); err != nil {
+		log.Error().Msgf("监听HTTP失败 %s", err)
+	}
+}
 
 // listen for agents
 func listenTcp() {

@@ -9,7 +9,7 @@ import (
 	"path/filepath"
 )
 
-var allConfig map[string]core.LauncherConf
+var allConfig = make(map[string]core.LauncherConf)
 var msgChan = make(chan map[string]core.LauncherConf, 1024)
 
 func sendMsg() {
@@ -26,7 +26,7 @@ func sendMsg() {
 
 func loadConfig(path string) {
 	files, err := ioutil.ReadDir(path)
-	var allConfig = make(map[string]core.LauncherConf)
+
 	if err != nil {
 		panic(fmt.Errorf("遍历目录失败: %s \n", err))
 	}
