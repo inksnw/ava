@@ -36,6 +36,7 @@ func dial(w http.ResponseWriter, r *http.Request) {
 	log.Info().Msgf("接到管理端ws连接")
 	loadConfig(".")
 	updateInfo()
+	updateProcess()
 	defer connIns.Conn.Close()
 
 	p := core.TaskMsg{}
