@@ -15,6 +15,21 @@ type webInfo struct {
 	core.PcInfo
 }
 
+func getwp(w http.ResponseWriter, r *http.Request) {
+	err := json.NewEncoder(w).Encode(workerMap)
+	if err != nil {
+		log.Error().Msgf("返回前端接口失败 %s", err)
+	}
+}
+
+func getwpr(w http.ResponseWriter, r *http.Request) {
+
+	err := json.NewEncoder(w).Encode(workerMapR)
+	if err != nil {
+		log.Error().Msgf("返回前端接口失败 %s", err)
+	}
+}
+
 func getAllInfo(w http.ResponseWriter, r *http.Request) {
 	var rv []webInfo
 

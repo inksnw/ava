@@ -3,6 +3,7 @@ module ava
 go 1.15
 
 require (
+	github.com/fsnotify/fsnotify v1.4.7
 	github.com/gorilla/websocket v1.4.2
 	github.com/hashicorp/yamux v0.0.0-20200609203250-aecfd211c9ce
 	github.com/orcaman/concurrent-map v0.0.0-20190826125027-8c72a8bb44f6

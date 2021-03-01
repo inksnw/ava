@@ -1,7 +1,7 @@
 {
-    "worker": "bot_register",
+    "worker": "333111",
     "command": "python3 deal.py",
-    "dir": "/root/ava/reg"
+    "dir": "/root/ava/regss"
 }
 
 

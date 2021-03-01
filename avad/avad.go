@@ -21,6 +21,8 @@ func Manger(addrs []string) {
 
 	http.HandleFunc("/exectask", taskRouter)
 	http.HandleFunc("/v1/allInfo", getAllInfo)
+	http.HandleFunc("/wp", getwp)
+	http.HandleFunc("/wpr", getwpr)
 	http.HandleFunc("/v1/proxy", getProxyInfo)
 	http.Handle("/", http.FileServer(http.Dir("dist")))
 
