@@ -10,7 +10,7 @@ var workerMap map[string][]string
 var workerMapR map[string][]string
 var AllInfo = make(map[string]core.PcInfo)
 
-func dealConfig(host string,p map[string]core.LauncherConf)  {
+func dealConfig(host string, p map[string]core.LauncherConf) {
 	//todo map并发安全
 	workerMap = make(map[string][]string)
 	workerMapR = make(map[string][]string)
@@ -46,7 +46,7 @@ func getNodeInfo(host string, ins *core.WsStruct) {
 			//log.Info().Msgf("读取节点: %s 状态信息成功", host)
 			continue
 		}
-		dealConfig(host,p)
+		dealConfig(host, p)
 		//log.Debug().Msgf("读取节点: %s注册信息成功", host)
 	}
 

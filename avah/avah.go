@@ -9,34 +9,17 @@ import (
 	"net/http"
 	"strings"
 	"sync"
-	"time"
 )
 
 var connIns *core.WsStruct
 
-func update() {
-	ticker := time.NewTicker(core.UpdateWait)
-	defer ticker.Stop()
-	tmp := make(map[string]core.LauncherConf)
+func updateInfo() {
+	go sendMsg()
 	viper.WatchConfig()
 	viper.OnConfigChange(func(in fsnotify.Event) {
 		log.Info().Msgf("配置文件发生变动,更新信息")
-		listAll(".")
+		loadConfig(".")
 	})
-
-	for {
-		tmp["info"] = core.LauncherConf{
-			PcInfo: core.GetPcInfo(),
-		}
-		taskChan <- tmp
-		//todo 使用文件监控实现配置文件变更才更新
-		<-ticker.C
-	}
-}
-
-func updateInfo() {
-	go sendMsg()
-	go update()
 }
 
 func dial(w http.ResponseWriter, r *http.Request) {
@@ -51,7 +34,7 @@ func dial(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	log.Info().Msgf("接到管理端ws连接")
-	listAll(".")
+	loadConfig(".")
 	updateInfo()
 	defer connIns.Conn.Close()
 

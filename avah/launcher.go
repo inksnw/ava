@@ -13,6 +13,16 @@ import (
 	"strings"
 )
 
+func updateProcess()  {
+
+	tmp := make(map[string]core.LauncherConf)
+	tmp["info"] = core.LauncherConf{
+		PcInfo: core.GetPcInfo(),
+	}
+	msgChan <- tmp
+
+}
+
 func executor(command, arg, taskid, dir string) {
 	//go reaper.Reap()
 
@@ -22,11 +32,8 @@ func executor(command, arg, taskid, dir string) {
 	script := strings.Split(command, " ")
 	script = append(script, "placeholder", filename)
 
-	name := script[0]
-	script = script[1:]
-
 	log.Debug().Msgf("工作目录 %s", dir)
-	cmd := exec.CommandContext(ctx, name, script...)
+	cmd := exec.CommandContext(ctx, script[0], script[1:]...)
 	cmd.Dir = dir
 
 	stdout, err := cmd.StdoutPipe()
@@ -45,26 +52,30 @@ func executor(command, arg, taskid, dir string) {
 	}
 
 	logfile := filepath.Join(dir, taskid+".log")
-	dstlog := createFile(logfile)
+	dstLog := createFile(logfile)
 
 	// 从管道中实时获取输出并打印到终端
-	go asyncLog(ctx, stdout, dstlog)
+	go asyncLog(ctx, stdout, dstLog)
 
 	log.Info().Msgf("程序启动成功,任务id: %s 进程id: %d", taskid, cmd.Process.Pid)
 	core.ProcessStatus.Set(taskid, cmd.Process.Pid)
+	updateProcess()
 
 	go func() {
 		err := cmd.Wait()
 		if err != nil {
 			log.Error().Msgf("进程 %s异常退出 %s", logfile, err)
+			updateProcess()
 			e := fmt.Sprintf("进程异常退出 %s\n", err)
-			dstlog.Write([]byte(e))
+			_, _ = dstLog.Write([]byte(e))
+
 		}
 		cancel()
 		if err := os.Remove(filename); err != nil {
 			log.Error().Msgf("任务执行完成,临时参数文件删除失败 %s", err)
 		}
 		log.Debug().Msgf("任务: %s 执行完成,退出", command)
+		updateProcess()
 		core.ProcessStatus.Remove(taskid)
 	}()
 
@@ -114,9 +125,9 @@ func Exists(path string) bool {
 	return true
 }
 
-func asyncLog(ctx context.Context, stdout io.ReadCloser, dstlog *os.File) {
+func asyncLog(ctx context.Context, stdout io.ReadCloser, dstLog *os.File) {
 	buf := make([]byte, 1024, 1024)
-	defer dstlog.Close()
+	defer dstLog.Close()
 	for {
 		select {
 		case <-ctx.Done():
@@ -126,9 +137,9 @@ func asyncLog(ctx context.Context, stdout io.ReadCloser, dstlog *os.File) {
 			strNum, err := stdout.Read(buf)
 			if strNum > 0 {
 				outputByte := buf[:strNum]
-				_, err = dstlog.Write(outputByte)
+				_, err = dstLog.Write(outputByte)
 				if err != nil {
-					log.Debug().Msgf("%s 日志文件写入失败 %s", dstlog.Name(), err)
+					log.Debug().Msgf("%s 日志文件写入失败 %s", dstLog.Name(), err)
 					return
 				}
 			}

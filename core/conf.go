@@ -42,7 +42,6 @@ type TaskMsg struct {
 }
 
 const PongWait = 20 * time.Second
-const UpdateWait = 5 * time.Second
 
 //每台主机最多运行业务进程数
 var PerMachineProcess int

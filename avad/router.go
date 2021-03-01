@@ -44,7 +44,7 @@ func balance(p core.TaskMsg) (rv *result) {
 		host = balanceOne(hosts, p)
 	}
 	if host == "" {
-		msg := fmt.Sprintf("任务: %s在节点 %s都有部署,全节点不可达", p.Route, hosts)
+		msg := fmt.Sprintf("任务在节点 %s 有部署,全节点不可达", hosts)
 		return &result{400, msg, ""}
 	}
 	code, msg := send(host, p)
@@ -65,6 +65,10 @@ type machine struct {
 }
 
 func balanceOne(hosts []string, p core.TaskMsg) (host string) {
+	if len(AllInfo) == 0 {
+		return randOne(hosts, p)
+	}
+
 	var allMachine []machine
 	for k, v := range AllInfo {
 		//仅在有这个业务的主机里寻找
@@ -83,10 +87,10 @@ func balanceOne(hosts []string, p core.TaskMsg) (host string) {
 		host = v.ip
 		workderMachine = append(workderMachine, host)
 		if err := netAvailable(host); err != nil {
-			log.Info().Msgf("任务[%s:%s]在节点 %s都有部署,任务数最低的节点: %s不可用,更换下一个", p.Worker, p.TaskID, workderMachine, host)
+			log.Info().Msgf("任务[%s:%s]在节点 %s 有部署,任务数最低的节点: %s不可用,更换下一个", p.Worker, p.TaskID, workderMachine, host)
 			continue
 		}
-		log.Info().Msgf("任务: [%s:%s]在节点 %s都有部署,投送到任务数最低的节点: %s", p.Worker, p.TaskID, workderMachine, host)
+		log.Info().Msgf("任务: [%s:%s]在节点 %s 有部署,投送到任务数最低的节点: %s", p.Worker, p.TaskID, workderMachine, host)
 		return host
 	}
 	return ""

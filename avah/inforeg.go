@@ -10,20 +10,20 @@ import (
 )
 
 var allConfig map[string]core.LauncherConf
-var taskChan = make(chan map[string]core.LauncherConf, 1024)
+var msgChan = make(chan map[string]core.LauncherConf, 1024)
 
 func sendMsg() {
 	for {
-		msg := <-taskChan
+		msg := <-msgChan
 		err := connIns.WJson(msg)
 		if err != nil {
-			log.Error().Msgf("更新节点信息失败 %s", err)
-			return
+			log.Error().Msgf("回传信息失败 %s", err)
+			continue
 		}
 	}
 }
 
-func listAll(path string) {
+func loadConfig(path string) {
 	files, err := ioutil.ReadDir(path)
 	var allConfig = make(map[string]core.LauncherConf)
 	if err != nil {
@@ -39,9 +39,12 @@ func listAll(path string) {
 				//log.Debug().Msgf("目录: %s下没有找到%s,跳过", fi.Name(), confname)
 				continue
 			}
-			viper.Unmarshal(&config) // 将配置信息绑定到结构体上
+			err = viper.Unmarshal(&config)
+			if err != nil {
+				log.Error().Msgf("解析launcher1失败 %s", err)
+			}
 			allConfig[config.Worker] = config
 		}
 	}
-	taskChan <- allConfig
+	msgChan <- allConfig
 }

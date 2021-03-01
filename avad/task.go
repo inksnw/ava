@@ -26,6 +26,11 @@ func resourceAvailable() (totalTasks, currentTasks int, available bool) {
 		return
 	}
 
+	if totalTasks == 0 {
+		available = true
+		return
+	}
+
 	if currentTasks >= totalTasks {
 		available = false
 		return

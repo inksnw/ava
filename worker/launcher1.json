@@ -1,5 +1,5 @@
 {
-    "worker": "333111",
+    "worker": "aaa323",
     "command": "python3 deal.py",
     "dir": "/root/ava/regss"
 }
