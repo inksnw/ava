@@ -45,7 +45,6 @@ func listenTcp() {
 
 		agentStr := conn.RemoteAddr().String()
 		log.Info().Msgf("接收到管理端tcp连接")
-		//_ = conn.SetReadDeadline(time.Now().Add(proxytout))
 		_ = conn.SetDeadline(time.Time{})
 		session, err := yamux.Client(conn, nil)
 		if err != nil {
