@@ -11,6 +11,7 @@ import (
 	"os/exec"
 	"path/filepath"
 	"strings"
+	"time"
 )
 
 func updateProcess() {
@@ -22,9 +23,9 @@ func updateProcess() {
 }
 
 func executor(command, arg, taskid, dir string) {
-	//go reaper.Reap()
 
-	ctx, cancel := context.WithCancel(context.Background())
+	runLeft := time.Duration(30) * time.Minute
+	ctx, cancel := context.WithDeadline(context.Background(), time.Now().Add(runLeft))
 	filename := tmpConfig(dir, arg)
 
 	script := strings.Split(command, " ")
@@ -49,6 +50,7 @@ func executor(command, arg, taskid, dir string) {
 		return
 	}
 
+
 	logfile := filepath.Join(dir, taskid+".log")
 	dstLog := createFile(logfile)
 
@@ -65,8 +67,10 @@ func executor(command, arg, taskid, dir string) {
 			log.Error().Msgf("进程 %s异常退出 %s", logfile, err)
 			updateProcess()
 			e := fmt.Sprintf("进程异常退出 %s\n", err)
-			_, _ = dstLog.Write([]byte(e))
-
+			_, err = dstLog.Write([]byte(e))
+			if err != nil {
+				log.Error().Msgf("进程 %s异常退出,写入日志失败 %s", logfile, err)
+			}
 		}
 		cancel()
 		if err := os.Remove(filename); err != nil {
@@ -75,6 +79,7 @@ func executor(command, arg, taskid, dir string) {
 		log.Debug().Msgf("任务: %s 执行完成,退出", command)
 		updateProcess()
 		core.ProcessStatus.Remove(taskid)
+		dstLog.Close()
 	}()
 
 }
@@ -125,7 +130,7 @@ func Exists(path string) bool {
 
 func asyncLog(ctx context.Context, stdout io.ReadCloser, dstLog *os.File) {
 	buf := make([]byte, 1024, 1024)
-	defer dstLog.Close()
+	//defer dstLog.Close()
 	for {
 		select {
 		case <-ctx.Done():

@@ -40,6 +40,7 @@ func main() {
 	log.DefaultLogger = log.Logger{
 		Level:  log.InfoLevel,
 		Caller: 1,
+		TimeFormat: "2006-01-02 15:04:05",
 	}
 
 	if len(os.Args) > 1 {
