@@ -22,6 +22,7 @@ var ProcessStatus = cmap.New()
 type ProcessInfo struct {
 	TaskId string
 	Pid    int32
+	CreateTime int64
 }
 
 type PcInfo struct {
@@ -49,4 +50,4 @@ var PerMachineProcess int
 //白名单
 var Sites []string
 
-var Version = "1.27"
+var Version = "1.30"

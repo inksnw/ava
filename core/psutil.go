@@ -9,18 +9,25 @@ import (
 	"time"
 )
 
+type PidStruct struct {
+	Pid        int
+	CreateTime int64
+}
+
+
 func GetPcInfo() (info PcInfo) {
 	ch := ProcessStatus.IterBuffered()
 
 	var rv []ProcessInfo
 	for item := range ch {
-		pid, ok := item.Val.(int)
+		ins, ok := item.Val.(PidStruct)
 		if !ok {
 			continue
 		}
 		rv = append(rv, ProcessInfo{
 			TaskId: item.Key,
-			Pid:    int32(pid),
+			Pid:    int32(ins.Pid),
+			CreateTime: ins.CreateTime,
 		})
 	}
 	info.ProStatus = rv

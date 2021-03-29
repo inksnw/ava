@@ -29,6 +29,7 @@ func dial(w http.ResponseWriter, r *http.Request) {
 	var mutex sync.Mutex
 	connIns.Mutex = &mutex
 	connIns.Conn, err = Upgrader.Upgrade(w, r, nil)
+	defer connIns.Conn.Close()
 	if err != nil {
 		log.Error().Msgf("ws握手失败: %s", err)
 		return
@@ -49,6 +50,7 @@ func dial(w http.ResponseWriter, r *http.Request) {
 		//接收信息,给到路由分发
 		taskRouter(p)
 	}
+
 }
 
 func Node() {

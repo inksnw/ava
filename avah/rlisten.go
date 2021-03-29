@@ -2,9 +2,12 @@ package avah
 
 import (
 	"ava/core"
+	"context"
+	"encoding/json"
 	"flag"
 	"github.com/hashicorp/yamux"
 	"github.com/phuslu/log"
+	"golang.org/x/net/proxy"
 	"io"
 	"net"
 	"net/http"
@@ -56,6 +59,40 @@ func listenTcp() {
 
 }
 
+func testSocks5(ctx context.Context) {
+	time.Sleep(5 * time.Second)
+	ticker := time.NewTicker(5 * time.Minute)
+	type result struct {
+		Msg string `json:"msg"`
+	}
+	for {
+		select {
+		case <-ctx.Done():
+			log.Info().Msgf("socks5测试协程退出")
+			return
+		case <-ticker.C:
+			dialer, err := proxy.SOCKS5("tcp", "127.0.0.1:4562", nil, proxy.Direct)
+			if err != nil {
+				log.Error().Msgf("无法连接本机代理", err)
+				continue
+			}
+			httpTransport := &http.Transport{}
+			httpClient := &http.Client{Transport: httpTransport,Timeout: 2*time.Second}
+			httpTransport.Dial = dialer.Dial
+
+
+			if resp, err := httpClient.Get("http://127.0.0.1:4000/socks5"); err != nil {
+				log.Error().Msgf("socks5连接异常 %s", err.Error())
+			} else {
+				rv := result{}
+				json.NewDecoder(resp.Body).Decode(&rv)
+				log.Info().Msgf("测试socks5: %s", rv.Msg)
+				resp.Body.Close()
+			}
+		}
+	}
+}
+
 // Catches local clients and connects to yamux
 
 func listenSocks(session *yamux.Session, agentStr string) {
@@ -71,6 +108,10 @@ func listenSocks(session *yamux.Session, agentStr string) {
 		lis = true
 	}
 
+	ctx, cancel := context.WithCancel(context.Background())
+	go testSocks5(ctx)
+	defer cancel()
+
 	for {
 		conn, err := socksListen.Accept()
 		if err != nil {
@@ -80,8 +121,11 @@ func listenSocks(session *yamux.Session, agentStr string) {
 
 		stream, err := session.Open()
 		if err != nil {
-			log.Error().Msgf("[%s] 开启stream失败 %s: %v", agentStr, conn.RemoteAddr(), err)
-			_ = session.Close()
+			log.Error().Msgf("[%s] 开启session id:%d 失败 %v", agentStr, session.NumStreams(), err)
+			err = session.Close()
+			if err != nil {
+				log.Error().Msgf("session %d 关闭失败 %s", session.NumStreams(), err)
+			}
 			return
 		}
 		go relay(conn, stream)

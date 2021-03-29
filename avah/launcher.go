@@ -26,7 +26,7 @@ func executor(command, arg, taskid, dir string) {
 
 	runLeft := time.Duration(30) * time.Minute
 	ctx, cancel := context.WithDeadline(context.Background(), time.Now().Add(runLeft))
-	filename := tmpConfig(dir, arg)
+	filename := tmpConfig(dir, arg, taskid)
 
 	script := strings.Split(command, " ")
 	script = append(script, "placeholder", filename)
@@ -43,13 +43,12 @@ func executor(command, arg, taskid, dir string) {
 
 	if err = cmd.Start(); err != nil {
 		log.Error().Msgf("程序启动失败,任务id: %s,%s,%s", taskid, script, err)
-		if err := os.Remove(filename); err != nil {
-			log.Error().Msgf("程序启动失败,临时参数文件删除失败 %s", err)
-		}
+		//if err := os.Remove(filename); err != nil {
+		//	log.Error().Msgf("程序启动失败,临时参数文件删除失败 %s", err)
+		//}
 		cancel()
 		return
 	}
-
 
 	logfile := filepath.Join(dir, taskid+".log")
 	dstLog := createFile(logfile)
@@ -58,7 +57,12 @@ func executor(command, arg, taskid, dir string) {
 	go asyncLog(ctx, stdout, dstLog)
 
 	log.Info().Msgf("程序启动成功,任务id: %s 进程id: %d", taskid, cmd.Process.Pid)
-	core.ProcessStatus.Set(taskid, cmd.Process.Pid)
+	tmp := core.PidStruct{
+		Pid:        cmd.Process.Pid,
+		CreateTime: time.Now().Unix(),
+	}
+
+	core.ProcessStatus.Set(taskid, tmp)
 	updateProcess()
 
 	go func() {
@@ -73,9 +77,9 @@ func executor(command, arg, taskid, dir string) {
 			}
 		}
 		cancel()
-		if err := os.Remove(filename); err != nil {
-			log.Error().Msgf("任务执行完成,临时参数文件删除失败 %s", err)
-		}
+		//if err := os.Remove(filename); err != nil {
+		//	log.Error().Msgf("任务执行完成,临时参数文件删除失败 %s", err)
+		//}
 		log.Debug().Msgf("任务: %s 执行完成,退出", command)
 		updateProcess()
 		core.ProcessStatus.Remove(taskid)
@@ -84,8 +88,8 @@ func executor(command, arg, taskid, dir string) {
 
 }
 
-func tmpConfig(dir, arg string) (filename string) {
-	tmpFile, err := ioutil.TempFile(dir, "arg-")
+func tmpConfig(dir, arg, taskid string) (filename string) {
+	tmpFile, err := ioutil.TempFile(dir, taskid)
 	if err != nil {
 		log.Error().Msgf("创建文件型参数失败: %s", err)
 		return ""

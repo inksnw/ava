@@ -30,6 +30,15 @@ func getwpr(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+func socks5Test(w http.ResponseWriter, r *http.Request) {
+	result:=make(map[string]string)
+	result["msg"]="socks5链路正常"
+	err := json.NewEncoder(w).Encode(result)
+	if err != nil {
+		log.Error().Msgf("返回前端接口失败 %s", err)
+	}
+}
+
 func getAllInfo(w http.ResponseWriter, r *http.Request) {
 	var rv []webInfo
 
