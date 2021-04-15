@@ -1,9 +1,14 @@
 # ava
-一个去中心化的分布式任务运行平台
+一个分布式任务运行平台  
+业务相关性较强的项目,后续剔除业务逻辑
+参考/引用代码  
+https://github.com/kost/revsocks  
+https://github.com/armon/go-socks5  
+暂不熟悉LICENSE要求,后续整理做好说明  
+暂停开发
 #### 2.0升级计划(未开始)
 - [ ] 换用https://github.com/nhooyr/websocket实现
 - [ ] 使用单线路ws连接实现反向代理 https://github.com/genshen/wssocks
-
 
 
 
@@ -57,7 +62,3 @@ python3 deal.py placeholder /home/ubuntu/deploy/gather_spider/{params的base64�
 
 
 
-
-##### 4 bug
-- [ ] concurrent write to websocket connection
-- [ ] ws读取超时

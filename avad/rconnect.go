@@ -42,7 +42,10 @@ func DialConn(address, addrWs string, ins *core.WsStruct) {
 	}
 	err = relay(host, session, server)
 	if err != nil {
-		Reconnect(ins, host)
+		log.Error().Msgf("转载tcp通道%s失败,%s后重试", address, core.PongWait)
+		conn.Close()
+		//Reconnect(ins, host)
+		errChan <- host
 	}
 }
 

@@ -37,8 +37,8 @@ func getNodeInfo(host string, ins *core.WsStruct) {
 		err := ins.RJson(&p)
 
 		if err != nil {
-			log.Error().Msgf("读取节点: %s信息失败,立刻重连 %s,", host, err)
-			Reconnect(ins, host)
+			log.Error().Msgf("读取节点: %s信息失败%s,", host, err)
+			//Reconnect(ins, host)
 			return
 		}
 		if value, ok := p["info"]; ok {

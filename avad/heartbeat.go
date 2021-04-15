@@ -13,32 +13,46 @@ const (
 	pingPeriod = (core.PongWait * 9) / 10
 )
 
+var errChan = make(chan string, 1024)
+
 func ping() {
 	ticker := time.NewTicker(pingPeriod)
 	defer ticker.Stop()
+	check()
 	for {
-		ch := ConnStatus.IterBuffered()
-		for item := range ch {
-			host := item.Key
-			ins, _ := item.Val.(*core.WsStruct)
-			if !ins.Status {
-				Reconnect(ins, host)
-				continue
-			}
-			ping := func(string) error {
-				_ = ins.Conn.SetReadDeadline(time.Now().Add(core.PongWait))
-				return nil
-			}
-			ins.Conn.SetPongHandler(ping)
-			err := ins.WMessage(websocket.PingMessage, []byte{})
-			if err != nil {
-				log.Error().Msgf("节点 %s心跳检测失败,重新连接 %s", host, err)
-				Reconnect(ins, host)
-				continue
-			}
-			log.Debug().Msgf("节点 %s的ws心跳检测正常", host)
+		select {
+		case <-ticker.C:
+			check()
+		case host := <-errChan:
+			ins, _ := ConnStatus.Get(host)
+			realIns := ins.(*core.WsStruct)
+			log.Error().Msgf("节点 %s连接失败,重新连接", host)
+			Reconnect(realIns, host)
 		}
-		<-ticker.C
+	}
+}
+
+func check() {
+	ch := ConnStatus.IterBuffered()
+	for item := range ch {
+		host := item.Key
+		ins, _ := item.Val.(*core.WsStruct)
+		if !ins.Status {
+			Reconnect(ins, host)
+			continue
+		}
+		ping := func(string) error {
+			_ = ins.Conn.SetReadDeadline(time.Now().Add(core.PongWait))
+			return nil
+		}
+		ins.Conn.SetPongHandler(ping)
+		err := ins.WMessage(websocket.PingMessage, []byte{})
+		if err != nil {
+			log.Error().Msgf("节点 %s心跳检测失败,重新连接 %s", host, err)
+			Reconnect(ins, host)
+			continue
+		}
+		log.Debug().Msgf("节点 %s的ws心跳检测正常", host)
 	}
 }
 

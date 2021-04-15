@@ -34,7 +34,7 @@ func dial(w http.ResponseWriter, r *http.Request) {
 		log.Error().Msgf("ws握手失败: %s", err)
 		return
 	}
-	log.Info().Msgf("接到管理端ws连接")
+	log.Info().Msgf("接到管理端ws连接 %s", connIns.Conn.RemoteAddr().String())
 	go sendMsg()
 	updateInfo()
 	updateProcess()

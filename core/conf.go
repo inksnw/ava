@@ -42,7 +42,7 @@ type TaskMsg struct {
 	Rand   bool   `json:"rand"`
 }
 
-const PongWait = 20 * time.Second
+const PongWait = 5 * time.Second
 
 //每台主机最多运行业务进程数
 var PerMachineProcess int
@@ -50,4 +50,4 @@ var PerMachineProcess int
 //白名单
 var Sites []string
 
-var Version = "1.30"
+var Version = "1.33"

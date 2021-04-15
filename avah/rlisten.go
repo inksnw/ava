@@ -47,7 +47,7 @@ func listenTcp() {
 		}
 
 		agentStr := conn.RemoteAddr().String()
-		log.Info().Msgf("接收到管理端tcp连接")
+		log.Info().Msgf("接收到管理端tcp连接 %s", agentStr)
 		_ = conn.SetDeadline(time.Time{})
 		session, err := yamux.Client(conn, nil)
 		if err != nil {
@@ -77,9 +77,8 @@ func testSocks5(ctx context.Context) {
 				continue
 			}
 			httpTransport := &http.Transport{}
-			httpClient := &http.Client{Transport: httpTransport,Timeout: 2*time.Second}
+			httpClient := &http.Client{Transport: httpTransport, Timeout: 2 * time.Second}
 			httpTransport.Dial = dialer.Dial
-
 
 			if resp, err := httpClient.Get("http://127.0.0.1:4000/socks5"); err != nil {
 				log.Error().Msgf("socks5连接异常 %s", err.Error())
@@ -97,7 +96,7 @@ func testSocks5(ctx context.Context) {
 
 func listenSocks(session *yamux.Session, agentStr string) {
 	var err error
-	address := strings.Join([]string{"0.0.0.0", ":", core.SocksPort}, "")
+	address := strings.Join([]string{"127.0.0.1", ":", core.SocksPort}, "")
 
 	if !lis {
 		socksListen, err = net.Listen("tcp", address)
@@ -128,36 +127,17 @@ func listenSocks(session *yamux.Session, agentStr string) {
 			}
 			return
 		}
-		go relay(conn, stream)
-	}
 
-}
-
-func relay(conn, stream net.Conn) {
-	type res struct {
-		N   int64
-		Err error
-	}
-	ch := make(chan res)
-
-	go func() {
-		n, err := io.Copy(stream, conn)
-		_ = stream.SetDeadline(time.Now()) // wake up the other goroutine blocking on stream
-		_ = conn.SetDeadline(time.Now())   // wake up the other goroutine blocking on conn
-		defer stream.Close()
-		defer conn.Close()
-		ch <- res{n, err}
-	}()
-
-	_, err := io.Copy(conn, stream)
-	defer stream.Close()
-	defer conn.Close()
-	_ = stream.SetDeadline(time.Now()) // wake up the other goroutine blocking on stream
-	_ = conn.SetDeadline(time.Now())   // wake up the other goroutine blocking on left
-	rs := <-ch
-
-	if err == nil {
-		err = rs.Err
+		go func() {
+			io.Copy(conn, stream)
+			conn.Close()
+			log.Printf("[%s] Done copying conn to stream for %s", agentStr, conn.RemoteAddr())
+		}()
+		go func() {
+			io.Copy(stream, conn)
+			stream.Close()
+			log.Printf("[%s] Done copying stream to conn for %s", agentStr, conn.RemoteAddr())
+		}()
 	}
 
 }
